@@ -69,8 +69,17 @@
             <template scope="scope">
               <div>
                 {{ scope.row.fieldValue }}
+                <el-avatar v-show="fieldList[scope.row.fieldName].imgMap[scope.row.fieldValue]"
+                           @click.native="uploadFieldValueImgClick(scope.row.fieldName,scope.row.fieldValue)"
+                           shape="square" size="small"
+                           :src="fieldList[scope.row.fieldName].imgMap[scope.row.fieldValue]"></el-avatar>
                 <el-button size="mini" type="danger" round @click="delFieldValue(scope)">删除</el-button>
-                <el-button size="mini" type="info" round @click="console.log(12)">设置图片</el-button>
+
+                <el-button size="mini"
+                           v-show="!fieldList[scope.row.fieldName].imgMap[scope.row.fieldValue]"
+                           @click="uploadFieldValueImgClick(scope.row.fieldName,scope.row.fieldValue)"
+                           type="info" round>上传图片
+                </el-button>
               </div>
             </template>
           </el-table-column>
@@ -79,6 +88,9 @@
           <el-button @click="generSkuList">生成SKU列表</el-button>
           <el-button @click="addDetail">新增属性</el-button>
         </div>
+        <input type="file" ref="uploadFieldValueImg"
+               accept="image/*"
+               v-show="false" @change="uploadFieldValueImg"/>
       </el-form-item>
 
       <el-form-item label="SKU列表">
@@ -88,10 +100,11 @@
             :span-method="skuArraySpanMethod"
             style="width: 100%">
           <el-table-column
-              v-for="item in fieldNameList"
+              v-for="(item,index) in fieldNameList"
+              :key="index"
               :label="item"
               align="center">
-            <template scope="scope">
+            <template slot-scope="scope">
               <div>
                 {{ scope.row[item] }}
               </div>
@@ -137,6 +150,52 @@
           </el-table-column>
         </el-table>
       </el-form-item>
+
+      <el-form-item label="其他信息">
+        <el-table
+            :data="otherFieldInfo"
+            border
+            style="width: 100%">
+          <el-table-column
+              prop="key"
+              label="属性名"
+              align="center">
+            <template scope="scope">
+              <div>
+                <el-input size="mini"
+                          v-model="scope.row.key" placeholder="请输入内容"></el-input>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column
+              prop="key"
+              label="属性值"
+              align="center">
+            <template scope="scope">
+              <div>
+                <el-input size="mini"
+                          v-model="scope.row.value" placeholder="请输入内容"></el-input>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column
+              label="操作"
+              width="70"
+              align="center">
+            <template scope="scope">
+              <div>
+                <el-button type="danger"
+                           @click="delOtherField(scope)"
+                           icon="el-icon-delete" circle
+                           size="mini"></el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-form-item>
+      <div style="margin: 10px 0;text-align: right">
+        <el-button @click="addOtherField">新增</el-button>
+      </div>
       <el-form-item>
         <editor v-model="commodity.commodityDesc"
                 upload-url="util/upImg.do" fileName="file"/>
@@ -146,8 +205,6 @@
         <el-button>取消</el-button>
       </el-form-item>
     </el-form>
-
-
 
 
     <el-dialog
@@ -176,6 +233,12 @@ export default {
   components: {editor},
   data() {
     return {
+      otherFieldInfo: [
+        // {
+        //   "key": '',
+        //   "value": ''
+        // }
+      ],
       imgFileList: [
         {
           url: 'http://localhost:8081/final/upload/sys_images/a0efd7b99f835407.jpg'
@@ -186,15 +249,29 @@ export default {
         name: '',
         value: ''
       },
-      fieldNameList: ['123123'],
+      fieldNameList: ['颜色', '尺码'],
       fieldList: {
-        '123123': {
-          fieldName: '123123',
-          valueList: {
-            '123': {},
-            '456': {},
-            '789': {}
+        '颜色': {
+          fieldName: '颜色',
+          valueMap: {
+            '绿色': {},
+            '红色': {},
+            '白色': {}
+          },
+          valueList: ['绿色', '红色', '白色'],
+          imgMap: {
+            '绿色': 'http://zzn-android.oss-cn-hangzhou.aliyuncs.com/final/2021011922551548209617.png'
           }
+        },
+        '尺码': {
+          fieldName: '尺码',
+          valueMap: {
+            'L': {},
+            'XL': {},
+            'XXL': {}
+          },
+          valueList: ['L', 'XL', 'XXL'],
+          imgMap: {}
         }
       },
       skuList: [
@@ -213,20 +290,38 @@ export default {
         imgs: [],
         details: [
           {
-            fieldName: '123123',
-            fieldValue: '123',
+            fieldName: '颜色',
+            fieldValue: '绿色',
             fieldId: 123,
             fieldValueId: 123,
           },
           {
-            fieldName: '123123',
-            fieldValue: '456',
+            fieldName: '颜色',
+            fieldValue: '红色',
             fieldId: 123,
             fieldValueId: 123,
           },
           {
-            fieldName: '123123',
-            fieldValue: '789',
+            fieldName: '颜色',
+            fieldValue: '白色',
+            fieldId: 123,
+            fieldValueId: 123,
+          },
+          {
+            fieldName: '尺码',
+            fieldValue: 'L',
+            fieldId: 123,
+            fieldValueId: 123,
+          },
+          {
+            fieldName: '尺码',
+            fieldValue: 'XL',
+            fieldId: 123,
+            fieldValueId: 123,
+          },
+          {
+            fieldName: '尺码',
+            fieldValue: 'XXL',
             fieldId: 123,
             fieldValueId: 123,
           }
@@ -254,6 +349,8 @@ export default {
           ]
         }
       ],
+      activiFieldName: '',
+      activiFieldValue: ''
     }
   },
   created() {
@@ -261,15 +358,6 @@ export default {
     this.getFormatCategiryList();
   },
   methods: {
-    addNewField() {
-      var {commodity, newField} = this
-      commodity.fieldDetail.add({
-        fieldName: newField.name,
-        valueList: [{
-          fieldValue: newField.value
-        }]
-      })
-    },
     getBrands() {
       var that = this;
       axios.get("admin/commodity/getBrands.do").then(function (result) {
@@ -287,7 +375,93 @@ export default {
       });
     },
     oneSubmit() {
-      console.log(this.commodity)
+      // 开始准备数据
+      var {skuList, fieldList, fileList, imgFileList, commodity} = this
+
+      // commodity.commodityName = "测试一下"
+      // commodity.brandId = 831
+      // commodity.categoryId = 650
+      // commodity.commodityDesc = '<p>123213</p>'
+
+      var commodityDetail = {}
+      console.log(fileList)
+      for (let i = 0; i < skuList.length; i++) {
+        if (skuList[i].price < 0.01) {
+          this.$message.error('售价最低不能低于0.1元！')
+          return
+        }
+      }
+      var imgArr = [];
+      if (fileList.length != 0) {
+        for (let i = 0; i < fileList.length; i++) {
+          imgArr.push(fileList[i].url)
+        }
+      } else if (imgFileList.length != 0) {
+        for (let i = 0; i < imgFileList.length; i++) {
+          imgArr.push(imgFileList[i].url)
+        }
+      } else {
+        this.$message.error('请上传商品图片!')
+        return
+      }
+      commodityDetail.imgArr = JSON.stringify(imgArr)
+
+      if (commodity.commodityName && commodity.commodityName.length > 0) {
+        commodityDetail.commodityName = commodity.commodityName
+      } else {
+        this.$message.error('请输入商品标题!')
+        return
+      }
+
+      if (commodity.brandId) {
+        commodityDetail.brandId = commodity.brandId
+      } else {
+        this.$message.error('请输入商品品牌!')
+        return
+      }
+
+      if (commodity.categoryId) {
+        if (commodity.categoryId instanceof Array) {
+          commodityDetail.categoryId = commodity.categoryId[commodity.categoryId.length - 1]
+        } else if (commodity.categoryId instanceof Number
+            || commodity.categoryId instanceof String) {
+          commodityDetail.categoryId = commodity.categoryId
+        } else {
+          this.$message.error('请输入商品分类!')
+          return
+        }
+      } else {
+      }
+
+      if (commodity.commodityDesc && commodity.commodityDesc.length > 0) {
+        commodityDetail.commodityDesc = commodity.commodityDesc
+      } else {
+        this.$message.error('请输入商品介绍!')
+        return
+      }
+
+
+      // 处理
+      var otherField = {}
+      var { otherFieldInfo } = this
+      for (let i = 0; i < otherFieldInfo.length; i++) {
+        if(otherFieldInfo[i].key&&otherFieldInfo[i].key.length>0){
+          if(otherFieldInfo[i].value&&otherFieldInfo[i].value.length>0){
+            this.$set(otherField,otherFieldInfo[i].key,otherFieldInfo[i].value)
+            continue
+          }
+        }
+        this.$message.error('请输入内容！')
+      }
+
+      commodityDetail.skuList = JSON.stringify(skuList)
+      commodityDetail.fieldList = JSON.stringify(fieldList)
+      commodityDetail.commodityDetailInfo = JSON.stringify(otherField)
+
+      console.log(JSON.stringify(commodityDetail))
+      axios.post('/admin/commodity/addCommodity.do', commodityDetail).then(res => {
+        console.log(res)
+      })
     },
     handleRemove(file, fileList) {
       this.fileList = fileList;
@@ -348,10 +522,13 @@ export default {
           axios.post("util/upOSSImg.do", formData, {headers: {'Content-Type': 'multipart/form-data'}})
               .then(function (res) {
                 if (res.code) {
-                  that.commodity.imgs.push({
-                    key: file.uid,
-                    value: res.data.path
-                  });
+                  var list = that.fileList
+                  for (var item in list) {
+                    console.log(list[item].uid, file.uid)
+                    if (list[item].uid === file.uid) {
+                      list[item].url = res.data.url
+                    }
+                  }
                 } else {
                   that.$refs.upload_img.uploadFiles = [];
                   that.$message({
@@ -512,10 +689,13 @@ export default {
         if (obj == undefined) {
           obj = {
             fieldName: row.row.fieldName,
-            valueList: {}
+            valueList: [],
+            valueMap: {},
+            imgMap: {}
           }
         }
-        obj.valueList[value] = {}
+        obj.valueMap[value] = {}
+        obj.valueList.push(value)
         this.$message({
           type: 'success',
           message: '添加成功!'
@@ -530,8 +710,8 @@ export default {
     delFieldValue(row) {
       var {commodity, fieldList, fieldNameList} = this
       commodity.details.splice(row.$index, 1)
-      delete fieldList[row.row.fieldName].valueList[row.row.fieldValue]
-      if (JSON.stringify(fieldList[row.row.fieldName].valueList) == "{}") {
+      delete fieldList[row.row.fieldName].valueMap[row.row.fieldValue]
+      if (JSON.stringify(fieldList[row.row.fieldName].valueMap) == "{}") {
         delete fieldList[row.row.fieldName]
         for (let i = 0; i < fieldNameList.length; i++) {
           if (fieldNameList[i] == row.row.fieldName) {
@@ -569,10 +749,13 @@ export default {
       if (obj == undefined) {
         obj = {
           fieldName: newField.name,
-          valueList: {}
+          valueMap: {},
+          valueList: [],
+          imgMap: {}
         }
       }
-      obj.valueList[newField.value] = {}
+      obj.valueMap[newField.value] = {}
+      obj.valueList.push(newField.value)
       fieldList[newField.name] = obj
       this.fieldNameList.push(newField.name)
       this.$message.success('添加成功了！')
@@ -597,14 +780,14 @@ export default {
       if (this.getArrLength(fieldList) == index) {
         // 添加到列表中
         var item = JSON.parse(JSON.stringify(obj));
-        item.stock = 0
-        item.price = 0.00
-        item.op = 0.00
+        item.stock = 10
+        item.price = 10.00
+        item.op = 10.00
         this.skuList.push(item)
       } else {
         var field = this.getArrIndeKey(fieldList, index)
         if (field != undefined) {
-          for (var valueItem in field.valueList) {
+          for (var valueItem in field.valueMap) {
             obj.fieldNameMap[field.fieldName] = valueItem
             obj[field.fieldName] = valueItem
             this.generSkuListItem(index + 1, obj)
@@ -627,27 +810,65 @@ export default {
     },
     skuArraySpanMethod({rowIndex, columnIndex}) {
       var {skuList} = this
-      if(columnIndex < this.fieldNameList.length){
+      if (columnIndex < this.fieldNameList.length) {
         var fieldName = this.fieldNameList[columnIndex]
-        if(rowIndex == 0 || skuList[rowIndex][fieldName] != skuList[rowIndex-1][fieldName]){
+        if (rowIndex == 0 || skuList[rowIndex][fieldName] != skuList[rowIndex - 1][fieldName]) {
           var len = 0
           var fieldValue = skuList[rowIndex][fieldName]
           for (let i = rowIndex; i < skuList.length; i++) {
-            console.log(skuList[i][fieldName],fieldName)
-            if(skuList[i][fieldName] == fieldValue){
+            console.log(skuList[i][fieldName], fieldName)
+            if (skuList[i][fieldName] == fieldValue) {
               len++
-            }else {
+            } else {
               break
             }
           }
           console.log(len)
-          return [len,1]
-        }else {
-          return [0,0]
+          return [len, 1]
+        } else {
+          return [0, 0]
         }
       }
     },
-
+    uploadFieldValueImgClick(fieldName, fieldValue) {
+      console.log(123123)
+      this.activiFieldName = fieldName
+      this.activiFieldValue = fieldValue
+      console.log(this.$refs.uploadFieldValueImg)
+      this.$refs.uploadFieldValueImg.dispatchEvent(new MouseEvent('click'))
+    },
+    uploadFieldValueImg() {
+      var that = this
+      var formData = new FormData();
+      formData.append("file", this.$refs.uploadFieldValueImg.files[0]);
+      axios.post("util/upOSSImg.do", formData, {headers: {'Content-Type': 'multipart/form-data'}})
+          .then(function (res) {
+            if (res.code) {
+              that.$set(
+                  that.fieldList[that.activiFieldName].imgMap,
+                  that.activiFieldValue,
+                  res.data.url)
+              that.activiFieldName = ''
+              that.activiFieldValue = ''
+            } else {
+              that.$refs.upload_img.uploadFiles = [];
+              that.$message({
+                type: 'error',
+                message: '图片上传异常，原因：' + res.errmsg,
+                duration: 1000
+              });
+            }
+          })
+    },
+    delOtherField(scope) {
+      this.otherFieldInfo.splice(scope.$index, 1)
+    },
+    addOtherField() {
+      this.otherFieldInfo.push({
+        "key": '',
+        "value": ''
+      })
+    }
   },
   watch: {
     'fieldKeyList': function () {
