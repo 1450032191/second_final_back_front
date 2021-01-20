@@ -201,8 +201,8 @@
                 upload-url="util/upImg.do" fileName="file"/>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="oneSubmit">立即创建</el-button>
-        <el-button>取消</el-button>
+        <el-button type="primary" @click="oneSubmit">{{isAdd ? '立即创建' : '立即修改'}}</el-button>
+        <el-button @click="toList()">取消</el-button>
       </el-form-item>
     </el-form>
 
@@ -240,47 +240,49 @@ export default {
         // }
       ],
       imgFileList: [
-        {
-          url: 'http://localhost:8081/final/upload/sys_images/a0efd7b99f835407.jpg'
-        }
+        // {
+        //   url: 'http://localhost:8081/final/upload/sys_images/a0efd7b99f835407.jpg'
+        // }
       ],
       isShowAddFieldDoalog: false,
       newField: {
         name: '',
         value: ''
       },
-      fieldNameList: ['颜色', '尺码'],
-      fieldList: {
-        '颜色': {
-          fieldName: '颜色',
-          valueMap: {
-            '绿色': {},
-            '红色': {},
-            '白色': {}
-          },
-          valueList: ['绿色', '红色', '白色'],
-          imgMap: {
-            '绿色': 'http://zzn-android.oss-cn-hangzhou.aliyuncs.com/final/2021011922551548209617.png'
-          }
-        },
-        '尺码': {
-          fieldName: '尺码',
-          valueMap: {
-            'L': {},
-            'XL': {},
-            'XXL': {}
-          },
-          valueList: ['L', 'XL', 'XXL'],
-          imgMap: {}
-        }
-      },
+      // fieldNameList: ['颜色', '尺码'],
+      fieldNameList: [],
+      // fieldList: {
+      //   '颜色': {
+      //     fieldName: '颜色',
+      //     valueMap: {
+      //       '绿色': {},
+      //       '红色': {},
+      //       '白色': {}
+      //     },
+      //     valueList: ['绿色', '红色', '白色'],
+      //     imgMap: {
+      //       '绿色': 'http://zzn-android.oss-cn-hangzhou.aliyuncs.com/final/2021011922551548209617.png'
+      //     }
+      //   },
+      //   '尺码': {
+      //     fieldName: '尺码',
+      //     valueMap: {
+      //       'L': {},
+      //       'XL': {},
+      //       'XXL': {}
+      //     },
+      //     valueList: ['L', 'XL', 'XXL'],
+      //     imgMap: {}
+      //   }
+      // },
+      fieldList: {},
       skuList: [
-        {
-          '123123': '123',
-          stock: 0,
-          price: 0.00,
-          op: 0.00
-        }
+        // {
+        //   '123123': '123',
+        //   stock: 0,
+        //   price: 0.00,
+        //   op: 0.00
+        // }
       ],
       commodity: {
         commodityName: "",
@@ -289,42 +291,42 @@ export default {
         categoryId: "",
         imgs: [],
         details: [
-          {
-            fieldName: '颜色',
-            fieldValue: '绿色',
-            fieldId: 123,
-            fieldValueId: 123,
-          },
-          {
-            fieldName: '颜色',
-            fieldValue: '红色',
-            fieldId: 123,
-            fieldValueId: 123,
-          },
-          {
-            fieldName: '颜色',
-            fieldValue: '白色',
-            fieldId: 123,
-            fieldValueId: 123,
-          },
-          {
-            fieldName: '尺码',
-            fieldValue: 'L',
-            fieldId: 123,
-            fieldValueId: 123,
-          },
-          {
-            fieldName: '尺码',
-            fieldValue: 'XL',
-            fieldId: 123,
-            fieldValueId: 123,
-          },
-          {
-            fieldName: '尺码',
-            fieldValue: 'XXL',
-            fieldId: 123,
-            fieldValueId: 123,
-          }
+          // {
+          //   fieldName: '颜色',
+          //   fieldValue: '绿色',
+          //   fieldId: 123,
+          //   fieldValueId: 123,
+          // },
+          // {
+          //   fieldName: '颜色',
+          //   fieldValue: '红色',
+          //   fieldId: 123,
+          //   fieldValueId: 123,
+          // },
+          // {
+          //   fieldName: '颜色',
+          //   fieldValue: '白色',
+          //   fieldId: 123,
+          //   fieldValueId: 123,
+          // },
+          // {
+          //   fieldName: '尺码',
+          //   fieldValue: 'L',
+          //   fieldId: 123,
+          //   fieldValueId: 123,
+          // },
+          // {
+          //   fieldName: '尺码',
+          //   fieldValue: 'XL',
+          //   fieldId: 123,
+          //   fieldValueId: 123,
+          // },
+          // {
+          //   fieldName: '尺码',
+          //   fieldValue: 'XXL',
+          //   fieldId: 123,
+          //   fieldValueId: 123,
+          // }
         ],
         commodityDesc: '',
         skuPrice: '',
@@ -350,14 +352,41 @@ export default {
         }
       ],
       activiFieldName: '',
-      activiFieldValue: ''
+      activiFieldValue: '',
+      isAdd: true
     }
   },
   created() {
+    this.init();
     this.getBrands();
     this.getFormatCategiryList();
   },
   methods: {
+    toList(){
+      this.$router.push({path:'/commodity'})
+    },
+    init(){
+      var that = this
+      var spu = this.$route.query.spu
+      if(spu){
+        axios.get('getCommodityDetail.do?spu='+spu).then(res => {
+          if(res.code == 1){
+            var data = res.data
+            that.otherFieldInfo = data.otherFieldInfo
+            that.imgFileList = data.imgFileList
+            that.fieldNameList = data.fieldNameList
+            that.fieldList = data.fieldList
+            that.skuList = data.skuList
+            that.commodity.categoryId = data.categoryId
+            that.commodity.brandId = parseInt(data.brandId)
+            that.commodity.details = data.commodityDetail
+            that.commodity.commodityName = data.commodityName
+            that.commodity.commodityDesc = data.commodityDesc
+            that.isAdd = false
+          }
+        })
+      }
+    },
     getBrands() {
       var that = this;
       axios.get("admin/commodity/getBrands.do").then(function (result) {

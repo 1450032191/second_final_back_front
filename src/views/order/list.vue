@@ -64,6 +64,8 @@
                     <el-button v-if="scope.row.status == 3"
                             size="mini"
                             @click="end(scope.row.orderId)">结束订单</el-button>
+                  <el-button size="mini"
+                             @click="toDetail(scope.row.orderId)">详情</el-button>
 <!--                    <el-button size="mini"-->
 <!--                               @click="">详情</el-button>-->
                 </template>
@@ -102,6 +104,9 @@
             }
         },
         methods:{
+          toDetail(orderId){
+            this.$router.push({path:'/orderDetail',query: {orderId:orderId}})
+          },
             getOrderList(){
                 var that = this;
                 var pageIndex = this.page.pageIndex;
@@ -170,7 +175,13 @@
                         that.getOrderList();
                     }
                 })
+            },
+          initImgUrl(url){
+            if(url.startsWith("http://")){
+              return url;
             }
+            return "http://img14.360buyimg.com/babel/"+url;
+          },
         },
         created() {
             //获取数据

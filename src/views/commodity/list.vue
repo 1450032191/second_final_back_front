@@ -11,6 +11,7 @@
         </div>
 
         <el-table
+                :row-click="rowClick"
                 :data="commodityList"
                 border
                 style="width: 100%" id="user-table">
@@ -24,7 +25,9 @@
                     label="商品主图"
                     width="180" align="center">
                 <template slot-scope="scope">
-                    <el-avatar shape="square" :size="100" fit="fill" :src="'http://img11.360buyimg.com/mobilecms/s140x140_'+scope.row.commodityMainImg"></el-avatar>
+                    <el-avatar shape="square" :size="100"
+                               fit="fill"
+                               :src="initImgUrl(scope.row.commodityMainImg)"></el-avatar>
                 </template>
             </el-table-column>
             <el-table-column
@@ -56,7 +59,14 @@
                 <template slot-scope="scope">
                     <el-button
                             size="mini"
-                            @click="setStatus(scope.row.commodityId)" :type="scope.row.status == 0 ?'warning':'danger'">{{scope.row.status == 0 ?'启用':'禁用'}}</el-button>
+                            @click="setStatus(scope.row.commodityId)" :type="scope.row.status == 0 ?'warning':'danger'">
+                      {{scope.row.status == 0 ?'启用':'禁用'}}
+                    </el-button>
+                  <el-button
+                      size="mini"
+                      @click="rowClick(scope.row.commodityId)">
+                    详情
+                  </el-button>
                 </template>
             </el-table-column>
         </el-table>
@@ -93,6 +103,15 @@
             }
         },
         methods:{
+            rowClick(spu){
+              this.$router.push({path:'/commodity/add',query: {spu:spu}})
+            },
+            initImgUrl(url){
+              if(url.startsWith("http://")){
+                return url;
+              }
+              return "http://img14.360buyimg.com/babel/"+url;
+            },
             filterStatus(value, row) {
                 return row.status === value;
             },

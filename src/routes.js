@@ -54,6 +54,12 @@ let routes = [
                 path: '/order',
                 component: () => import('@/views/order/list'),
                 name: '订单列表'
+            },
+            {
+                path: '/orderDetail',
+                component: () => import('@/views/order/orderDetail'),
+                name: '订单详情',
+                hidden: false
             }
         ]
     },
