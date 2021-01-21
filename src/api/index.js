@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { MessageBox, Message } from 'element-ui'
 const instance = axios.create({
-    baseURL:''
+    baseURL:'http://localhost:8081/final/'
 })
 
 

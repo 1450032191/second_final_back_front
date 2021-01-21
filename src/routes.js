@@ -46,9 +46,22 @@ let routes = [
     {
         path: '/',
         component: Home,
+        name: '类别管理',
+        iconCls: 'el-icon-user',
+        leaf: true,//只有一个节点
+        children: [
+            {
+                path: '/category',
+                component: () => import('@/views/category/category'),
+                name: '类别管理'
+            }
+        ]
+    },
+    {
+        path: '/',
+        component: Home,
         name: '订单',
         iconCls: 'el-icon-user',
-        leaf: true, //只有一个节点
         children: [
             {
                 path: '/order',
@@ -56,9 +69,17 @@ let routes = [
                 name: '订单列表'
             },
             {
+                path: '/pingjia',
+                component: () => import('@/views/order/pingjia'),
+                name: '评论列表'
+            },
+            {
                 path: '/orderDetail',
                 component: () => import('@/views/order/orderDetail'),
                 name: '订单详情',
+                meta: {
+                    hidden: false
+                },
                 hidden: false
             }
         ]
